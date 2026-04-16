@@ -2,31 +2,46 @@ import { getDb } from '../db/connection.js';
 import { getLLMProvider } from './llm.service.js';
 import type { LLMMessage, LLMResponse } from './llm-providers/base.js';
 
-export const ANALYZE_TENDER_PROMPT = `
-# PROMPT MAESTRO – ANÁLISIS ESTRATÉGICO DE PLIEGOS DE CONTRATACIÓN PÚBLICA (ESPAÑA)
+/**
+ * Construye el prompt completo con el pliego incrustado.
+ * Para modelos pequeños (llama3.1:8b) es crítico que todo vaya en un solo
+ * bloque de texto, no separado en system/user, porque tienden a ignorar
+ * el system prompt y dan respuestas genéricas.
+ */
+export function buildAnalysisPrompt(tenderContent: string): string {
+  return `Eres un consultor experto en contratación pública española con 20 años de experiencia. Tu especialidad es analizar pliegos de licitación (PCAP, PPT) y dar recomendaciones estratégicas a PYMES que quieren presentarse.
 
-Actúa como:
-- Experto en contratación pública española.
-- Especialista en análisis estratégico de licitaciones.
-- Consultor de negocio para PYMES.
-- Experto en detección de riesgos jurídicos.
-- Analista de viabilidad económica.
+A continuación te proporciono el TEXTO COMPLETO de un pliego de licitación real. Léelo con atención y genera un INFORME ESTRATÉGICO detallado basándote EXCLUSIVAMENTE en los datos concretos que aparecen en el pliego. NO inventes datos que no estén en el texto. Si un dato no aparece, indica "No especificado en el pliego".
 
-Analiza el pliego completo (PCAP, PPT, anexos y documentación vinculada) y genera un INFORME ESTRATÉGICO PROFESIONAL estructurado con los siguientes bloques:
+========== INICIO DEL PLIEGO ==========
+${tenderContent}
+========== FIN DEL PLIEGO ==========
 
-1️⃣ FICHA EJECUTIVA DEL CONTRATO
-2️⃣ ANÁLISIS DE IDONEIDAD PARA EL CLIENTE
-3️⃣ ANÁLISIS DE CRITERIOS DE ADJUDICACIÓN
-4️⃣ ANÁLISIS ECONÓMICO Y RENTABILIDAD
-5️⃣ DETECCIÓN DE RIESGOS JURÍDICOS
-6️⃣ ANÁLISIS DEL ÓRGANO DE CONTRATACIÓN
-7️⃣ ANÁLISIS DE COMPETENCIA PROBABLE
-8️⃣ MATRIZ DE DECISIÓN FINAL
-9️⃣ PLAN DE ACCIÓN SI SE DECIDE LICITAR
-🔟 RESUMEN EJECUTIVO PARA GERENCIA (1 PÁGINA)
+Ahora genera el informe estratégico con EXACTAMENTE estos bloques, usando los datos reales del pliego anterior:
 
-FORMATO DE SALIDA: Markdown claro y estructurado. Aporta análisis estratégico real y conclusiones accionables.
-`;
+## 1. FICHA EJECUTIVA DEL CONTRATO
+(Objeto, presupuesto base, valor estimado, duración, prórrogas, procedimiento, CPV, órgano de contratación)
+
+## 2. ANÁLISIS DE IDONEIDAD
+(¿Es adecuado para una PYME? ¿Qué perfil de empresa encaja? Requisitos de solvencia técnica y económica)
+
+## 3. ANÁLISIS DE CRITERIOS DE ADJUDICACIÓN
+(Desglose de puntuación: criterios automáticos vs juicio de valor, peso del precio vs técnica, estrategia recomendada)
+
+## 4. ANÁLISIS ECONÓMICO Y RENTABILIDAD
+(Presupuesto, márgenes estimados, riesgos de baja temeraria, revisión de precios)
+
+## 5. DETECCIÓN DE RIESGOS JURÍDICOS
+(Penalidades, garantías, subcontratación, cláusulas problemáticas)
+
+## 6. ANÁLISIS DE COMPETENCIA PROBABLE
+(Tipo de empresas que se presentarán, barreras de entrada, nivel de competencia esperado)
+
+## 7. RECOMENDACIÓN FINAL
+(¿Presentarse o no? Justificación con datos del pliego. Puntos fuertes y débiles de la oportunidad)
+
+Formato: Markdown estructurado. Usa los datos EXACTOS del pliego (cifras, plazos, porcentajes).`;
+}
 
 interface AnalysisInput {
   userId: number;
@@ -98,35 +113,38 @@ export function deleteAnalysis(id: number, userId: number): boolean {
 }
 
 export function buildMessages(input: AnalysisInput): LLMMessage[] {
-  const messages: LLMMessage[] = [
-    { role: 'system', content: ANALYZE_TENDER_PROMPT },
-  ];
-
-  const parts: string[] = [];
+  let tenderContent = '';
 
   if (input.url) {
-    parts.push(`ENLACE AL PLIEGO: ${input.url}`);
-    parts.push('NOTA: Eres un modelo local y NO puedes acceder a URLs. Analiza únicamente el texto proporcionado a continuación. Si no se proporciona texto, indica que necesitas el contenido del pliego pegado directamente.');
+    tenderContent += `[Enlace proporcionado: ${input.url} — el modelo no puede acceder a URLs, se analiza el texto pegado]\n\n`;
   }
 
   if (input.text && input.text.trim().length > 0) {
-    parts.push(`CONTENIDO DEL PLIEGO A ANALIZAR:\n\n${input.text}`);
+    tenderContent += input.text;
   }
 
-  if (parts.length === 0) {
-    parts.push('ERROR: No se ha proporcionado ningún contenido para analizar. Solicita al usuario que pegue el texto del pliego.');
+  if (!tenderContent.trim()) {
+    tenderContent = 'ERROR: No se ha proporcionado contenido del pliego. El usuario debe pegar el texto completo.';
   }
 
-  const userContent = parts.join('\n\n---\n\n');
-  messages.push({ role: 'user', content: userContent });
+  // Prompt unificado: instrucciones + pliego en un solo bloque
+  const fullPrompt = buildAnalysisPrompt(tenderContent);
 
-  // Debug: mostrar en consola lo que se envía al LLM
+  // Para Ollama usamos un solo mensaje user con todo el contenido.
+  // Para OpenAI se podría separar en system+user, pero el prompt unificado
+  // funciona igual de bien y mantiene consistencia.
+  const messages: LLMMessage[] = [
+    { role: 'user', content: fullPrompt },
+  ];
+
+  // Debug
   console.log('[Analysis] ====== PROMPT DEBUG ======');
-  console.log(`[Analysis] Provider: ${input.inputType}`);
-  console.log(`[Analysis] System prompt: ${ANALYZE_TENDER_PROMPT.length} chars`);
-  console.log(`[Analysis] User content: ${userContent.length} chars`);
-  console.log(`[Analysis] Primeros 500 chars del contenido usuario:`);
-  console.log(userContent.slice(0, 500));
+  console.log(`[Analysis] Input type: ${input.inputType}`);
+  console.log(`[Analysis] Texto del pliego: ${tenderContent.length} chars`);
+  console.log(`[Analysis] Prompt total (con instrucciones): ${fullPrompt.length} chars`);
+  console.log(`[Analysis] Estructura: 1 mensaje user con prompt unificado`);
+  console.log(`[Analysis] Primeros 300 chars del pliego:`);
+  console.log(tenderContent.slice(0, 300));
   console.log('[Analysis] ============================');
 
   return messages;
