@@ -36,14 +36,42 @@ export default function AnalysisForm({ onResult }: Props) {
     const hasInput = (useUrl && tenderUrl.trim()) || (!useUrl && tenderText.trim()) || selectedFile;
     if (!hasInput) return;
 
+    // Validar que hay contenido real para analizar
+    const textContent = tenderText.trim();
+    const urlContent = tenderUrl.trim();
+
+    if (!useUrl && !textContent && !selectedFile) {
+      onResult("Error: Debes pegar el texto del pliego en el editor antes de ejecutar el análisis.");
+      return;
+    }
+    if (useUrl && !urlContent && !textContent && !selectedFile) {
+      onResult("Error: Debes proporcionar una URL o pegar el texto del pliego.");
+      return;
+    }
+
     setIsAnalyzing(true);
     try {
-      const body: any = {
+      const body: Record<string, unknown> = {
         inputType: selectedFile ? 'file' : useUrl ? 'url' : 'text',
-        text: tenderText || undefined,
-        url: useUrl ? tenderUrl : undefined,
-        file: selectedFile ? { data: selectedFile.data, mimeType: selectedFile.mimeType, name: selectedFile.name } : undefined,
       };
+
+      // Siempre enviar el texto si hay contenido, independientemente del modo
+      if (textContent) {
+        body.text = textContent;
+      }
+      if (useUrl && urlContent) {
+        body.url = urlContent;
+      }
+      if (selectedFile) {
+        body.file = { data: selectedFile.data, mimeType: selectedFile.mimeType, name: selectedFile.name };
+      }
+
+      console.log('[AnalysisForm] Enviando al backend:', {
+        inputType: body.inputType,
+        textLength: typeof body.text === 'string' ? body.text.length : 0,
+        url: body.url || null,
+        file: body.file ? 'sí' : 'no',
+      });
 
       const { text, analysisId } = await apiStream('/api/analysis', body, (partial) => {
         onResult(partial);

@@ -60,7 +60,7 @@ echo -e "${YELLOW}[2/8]${NC} Registro de usuario..."
 TEST_EMAIL="test-$(date +%s)@licitia.test"
 REG=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/api/auth/register" \
   -H "Content-Type: application/json" \
-  -c "$COOKIE_JAR" \
+  -c "$COOKIE_JAR" -b "$COOKIE_JAR" \
   -d "{\"email\":\"$TEST_EMAIL\",\"password\":\"test123456\",\"name\":\"Test User\"}" 2>/dev/null)
 HTTP_CODE=$(echo "$REG" | tail -1)
 BODY=$(echo "$REG" | sed '$d')
@@ -75,7 +75,7 @@ fi
 echo -e "${YELLOW}[3/8]${NC} Login..."
 LOGIN=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
-  -c "$COOKIE_JAR" \
+  -c "$COOKIE_JAR" -b "$COOKIE_JAR" \
   -d "{\"email\":\"$TEST_EMAIL\",\"password\":\"test123456\"}" 2>/dev/null)
 HTTP_CODE=$(echo "$LOGIN" | tail -1)
 BODY=$(echo "$LOGIN" | sed '$d')

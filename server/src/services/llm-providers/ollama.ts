@@ -33,13 +33,7 @@ export class OllamaProvider implements LLMProvider {
     const start = Date.now();
     const prompt = this.buildPrompt(messages);
 
-    console.log('[Ollama] ====== PROMPT ENVIADO ======');
-    console.log(`[Ollama] Modelo: ${model || this.defaultModel}`);
-    console.log(`[Ollama] Endpoint: /api/generate (prompt unificado)`);
-    console.log(`[Ollama] Largo total: ${prompt.length} chars`);
-    console.log(`[Ollama] Primeros 800 chars:`);
-    console.log(prompt.slice(0, 800));
-    console.log('[Ollama] ==============================');
+    console.log(`[Ollama] chat: ${prompt.length} chars, modelo: ${model || this.defaultModel}`);
 
     const res = await fetch(`${this.baseUrl}/api/generate`, {
       method: 'POST',
@@ -69,13 +63,7 @@ export class OllamaProvider implements LLMProvider {
     let tokensUsed: number | undefined;
     const prompt = this.buildPrompt(messages);
 
-    console.log('[Ollama] ====== PROMPT ENVIADO (stream) ======');
-    console.log(`[Ollama] Modelo: ${model || this.defaultModel}`);
-    console.log(`[Ollama] Endpoint: /api/generate (prompt unificado)`);
-    console.log(`[Ollama] Largo total: ${prompt.length} chars`);
-    console.log(`[Ollama] Primeros 800 chars:`);
-    console.log(prompt.slice(0, 800));
-    console.log('[Ollama] ==========================================');
+    console.log(`[Ollama] stream: ${prompt.length} chars, modelo: ${model || this.defaultModel}`);
 
     try {
       const res = await fetch(`${this.baseUrl}/api/generate`, {
@@ -94,17 +82,43 @@ export class OllamaProvider implements LLMProvider {
       if (!reader) throw new Error('No se pudo leer el stream de Ollama');
 
       const decoder = new TextDecoder();
+      let buffer = '';  // Buffer para líneas parciales
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n').filter(Boolean);
+        buffer += decoder.decode(value, { stream: true });
+
+        // Procesar solo líneas completas (terminadas en \n)
+        const lines = buffer.split('\n');
+        // La última puede estar incompleta, la dejamos en el buffer
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
-          const json = JSON.parse(line);
-          // /api/generate usa "response" en vez de "message.content"
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+
+          try {
+            const json = JSON.parse(trimmed);
+            if (json.response) {
+              fullContent += json.response;
+              callbacks.onChunk(json.response);
+            }
+            if (json.done) {
+              tokensUsed = json.eval_count;
+            }
+          } catch {
+            // Línea JSON malformada, ignorar
+            console.warn(`[Ollama] JSON parse skip: ${trimmed.slice(0, 100)}`);
+          }
+        }
+      }
+
+      // Procesar lo que quede en el buffer
+      if (buffer.trim()) {
+        try {
+          const json = JSON.parse(buffer.trim());
           if (json.response) {
             fullContent += json.response;
             callbacks.onChunk(json.response);
@@ -112,8 +126,12 @@ export class OllamaProvider implements LLMProvider {
           if (json.done) {
             tokensUsed = json.eval_count;
           }
+        } catch {
+          console.warn(`[Ollama] JSON parse final skip: ${buffer.slice(0, 100)}`);
         }
       }
+
+      console.log(`[Ollama] Stream completado: ${fullContent.length} chars, ${tokensUsed} tokens, ${Date.now() - start}ms`);
 
       callbacks.onDone({
         content: fullContent,
