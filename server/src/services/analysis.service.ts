@@ -102,17 +102,32 @@ export function buildMessages(input: AnalysisInput): LLMMessage[] {
     { role: 'system', content: ANALYZE_TENDER_PROMPT },
   ];
 
-  let userContent = '';
+  const parts: string[] = [];
+
   if (input.url) {
-    userContent += `Analiza el pliego disponible en este enlace: ${input.url}\n\n`;
-  }
-  if (input.text) {
-    userContent += `CONTENIDO DEL PLIEGO:\n${input.text}`;
-  }
-  if (!userContent.trim()) {
-    userContent = 'Analiza el pliego proporcionado.';
+    parts.push(`ENLACE AL PLIEGO: ${input.url}`);
+    parts.push('NOTA: Eres un modelo local y NO puedes acceder a URLs. Analiza únicamente el texto proporcionado a continuación. Si no se proporciona texto, indica que necesitas el contenido del pliego pegado directamente.');
   }
 
+  if (input.text && input.text.trim().length > 0) {
+    parts.push(`CONTENIDO DEL PLIEGO A ANALIZAR:\n\n${input.text}`);
+  }
+
+  if (parts.length === 0) {
+    parts.push('ERROR: No se ha proporcionado ningún contenido para analizar. Solicita al usuario que pegue el texto del pliego.');
+  }
+
+  const userContent = parts.join('\n\n---\n\n');
   messages.push({ role: 'user', content: userContent });
+
+  // Debug: mostrar en consola lo que se envía al LLM
+  console.log('[Analysis] ====== PROMPT DEBUG ======');
+  console.log(`[Analysis] Provider: ${input.inputType}`);
+  console.log(`[Analysis] System prompt: ${ANALYZE_TENDER_PROMPT.length} chars`);
+  console.log(`[Analysis] User content: ${userContent.length} chars`);
+  console.log(`[Analysis] Primeros 500 chars del contenido usuario:`);
+  console.log(userContent.slice(0, 500));
+  console.log('[Analysis] ============================');
+
   return messages;
 }

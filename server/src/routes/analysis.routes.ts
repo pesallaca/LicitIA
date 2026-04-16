@@ -30,6 +30,14 @@ router.post('/', authMiddleware, async (req, res) => {
     const body = analysisSchema.parse(req.body);
     const userId = req.userId!;
 
+    // Debug: qué llega del frontend
+    console.log('[Analysis] ====== REQUEST DEBUG ======');
+    console.log(`[Analysis] inputType: ${body.inputType}`);
+    console.log(`[Analysis] text: ${body.text ? `${body.text.length} chars` : 'VACÍO/undefined'}`);
+    console.log(`[Analysis] url: ${body.url || 'VACÍO/undefined'}`);
+    console.log(`[Analysis] file: ${body.file ? body.file.name : 'VACÍO/undefined'}`);
+    console.log('[Analysis] ==========================');
+
     // Crear registro en DB
     const analysisId = createAnalysisRecord({
       userId,
