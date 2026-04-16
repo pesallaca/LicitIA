@@ -1,6 +1,7 @@
 import { getDb } from '../db/connection.js';
 import { getLLMProvider } from './llm.service.js';
 import type { LLMMessage, LLMResponse } from './llm-providers/base.js';
+import { PDFParse } from 'pdf-parse';
 
 /**
  * Construye el prompt completo con el pliego incrustado.
@@ -49,6 +50,8 @@ interface AnalysisInput {
   text?: string;
   url?: string;
   fileName?: string;
+  fileData?: string;
+  fileMimeType?: string;
 }
 
 export interface AnalysisRow {
@@ -112,7 +115,20 @@ export function deleteAnalysis(id: number, userId: number): boolean {
   return result.changes > 0;
 }
 
-export function buildMessages(input: AnalysisInput): LLMMessage[] {
+export async function extractTextFromFile(base64Data: string, mimeType: string): Promise<string> {
+  const buffer = Buffer.from(base64Data, 'base64');
+
+  if (mimeType === 'application/pdf') {
+    const parser = new PDFParse({ data: new Uint8Array(buffer) });
+    const result = await parser.getText();
+    return result.text;
+  }
+
+  // .txt y otros formatos de texto plano
+  return buffer.toString('utf-8');
+}
+
+export async function buildMessages(input: AnalysisInput): Promise<LLMMessage[]> {
   let tenderContent = '';
 
   if (input.url) {
@@ -121,6 +137,18 @@ export function buildMessages(input: AnalysisInput): LLMMessage[] {
 
   if (input.text && input.text.trim().length > 0) {
     tenderContent += input.text;
+  }
+
+  // Extraer texto del archivo subido si no hay texto pegado
+  if (!tenderContent.trim() && input.fileData && input.fileMimeType) {
+    try {
+      const extracted = await extractTextFromFile(input.fileData, input.fileMimeType);
+      console.log(`[Analysis] Texto extraído del archivo: ${extracted.length} chars`);
+      tenderContent += extracted;
+    } catch (err) {
+      console.error('[Analysis] Error extrayendo texto del archivo:', err);
+      tenderContent = 'ERROR: No se pudo extraer el texto del archivo subido. Prueba a pegar el texto directamente.';
+    }
   }
 
   if (!tenderContent.trim()) {

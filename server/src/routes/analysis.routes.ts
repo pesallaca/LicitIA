@@ -27,14 +27,13 @@ const analysisSchema = z.object({
 // POST /api/analysis - Nuevo análisis con streaming SSE
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    // Debug RAW: qué llega exactamente del frontend ANTES de parsear
-    console.log('[Analysis] ====== RAW REQUEST ======');
-    console.log(`[Analysis] Content-Type: ${req.headers['content-type']}`);
-    console.log(`[Analysis] Body keys: ${Object.keys(req.body || {}).join(', ')}`);
-    console.log(`[Analysis] body.inputType: "${req.body?.inputType}" (type: ${typeof req.body?.inputType})`);
-    console.log(`[Analysis] body.text: ${req.body?.text ? `"${String(req.body.text).slice(0, 200)}..." (${String(req.body.text).length} chars)` : `${JSON.stringify(req.body?.text)} (type: ${typeof req.body?.text})`}`);
-    console.log(`[Analysis] body.url: ${JSON.stringify(req.body?.url)}`);
-    console.log(`[Analysis] body.file: ${req.body?.file ? `{name: "${req.body.file.name}", data: ${req.body.file.data?.length || 0} chars}` : JSON.stringify(req.body?.file)}`);
+    // Debug RAW: DUMP COMPLETO del body
+    console.log('[Analysis] ====== RAW BODY DUMP ======');
+    console.log(JSON.stringify(req.body, (key, val) => {
+      // Truncar campos largos para no inundar el log
+      if (typeof val === 'string' && val.length > 500) return val.slice(0, 500) + `... [${val.length} chars total]`;
+      return val;
+    }, 2));
     console.log('[Analysis] ==============================');
 
     const body = analysisSchema.parse(req.body);
@@ -79,12 +78,14 @@ router.post('/', authMiddleware, async (req, res) => {
     // Enviar ID del análisis
     res.write(`data: ${JSON.stringify({ type: 'id', analysisId })}\n\n`);
 
-    const messages = buildMessages({
+    const messages = await buildMessages({
       userId,
       inputType: body.inputType,
       text: body.text,
       url: body.url,
       fileName: body.file?.name,
+      fileData: body.file?.data,
+      fileMimeType: body.file?.mimeType,
     });
 
     const llm = getLLMProvider();
