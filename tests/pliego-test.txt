@@ -1,0 +1,84 @@
+PLIEGO DE CLÁUSULAS ADMINISTRATIVAS PARTICULARES
+
+EXPEDIENTE: CONT/2026/0147
+MESA DE CONTRATACIÓN DEL AYUNTAMIENTO DE ALCOBENDAS
+
+1. OBJETO DEL CONTRATO
+Servicio de mantenimiento integral de parques, jardines y zonas verdes del municipio de Alcobendas (Madrid), incluyendo conservación de arbolado, riego, siega, poda, reposición de plantas, limpieza de áreas ajardinadas y mantenimiento de mobiliario urbano en zonas verdes.
+
+Superficie total a mantener: 850.000 m² distribuidos en 47 parques y 120 zonas ajardinadas.
+
+2. CÓDIGO CPV
+77310000-6 (Servicios de plantación y mantenimiento de zonas verdes)
+77314000-4 (Servicios de mantenimiento de terrenos)
+
+3. PRESUPUESTO BASE DE LICITACIÓN
+Importe anual: 450.000,00 EUR (IVA excluido)
+IVA (21%): 94.500,00 EUR
+Importe anual total: 544.500,00 EUR
+Valor estimado del contrato (incluidas prórrogas): 1.800.000,00 EUR (IVA excluido)
+
+4. DURACIÓN DEL CONTRATO
+Plazo inicial: 3 años desde la formalización del contrato.
+Prórrogas: Posibilidad de una prórroga de 1 año adicional, previa autorización del órgano de contratación.
+
+5. PROCEDIMIENTO DE ADJUDICACIÓN
+Procedimiento abierto, tramitación ordinaria, conforme al artículo 156 y siguientes de la Ley 9/2017, de 8 de noviembre, de Contratos del Sector Público (LCSP).
+
+6. CRITERIOS DE ADJUDICACIÓN (100 puntos)
+
+A) Criterios evaluables mediante fórmulas (automáticos): 50 puntos
+   - Oferta económica: 50 puntos
+     Fórmula: Puntuación = 50 × (Oferta más baja / Oferta del licitador)
+     Se considerará baja temeraria aquella que supere el 25% de reducción sobre el presupuesto base.
+
+B) Criterios evaluables mediante juicio de valor: 50 puntos
+   - Memoria técnica y plan de trabajo: 30 puntos
+     * Organización del servicio y distribución de recursos humanos: 10 puntos
+     * Plan de trabajo anual con calendario detallado por zonas: 10 puntos
+     * Maquinaria y medios técnicos ofertados: 5 puntos
+     * Plan de gestión de residuos verdes: 5 puntos
+   - Mejoras sin coste adicional: 20 puntos
+     * Mejoras medioambientales (xerojardinería, especies autóctonas, riego eficiente): 10 puntos
+     * Mejoras sociales (contratación de personas en riesgo de exclusión): 5 puntos
+     * Propuesta de digitalización del servicio (app de incidencias, sensores de riego): 5 puntos
+
+7. REQUISITOS DE SOLVENCIA
+
+A) Solvencia económica y financiera:
+   - Volumen anual de negocios mínimo: 300.000 EUR en al menos 2 de los últimos 3 ejercicios.
+
+B) Solvencia técnica o profesional:
+   - Acreditación de al menos 3 contratos similares ejecutados en los últimos 5 años, cada uno por importe mínimo de 200.000 EUR anuales.
+   - Certificación ISO 14001 (Gestión Ambiental) vigente.
+   - Disponibilidad de un Ingeniero Técnico Agrícola o Ingeniero de Montes como director técnico del servicio.
+
+8. GARANTÍAS
+   - Garantía provisional: No se exige.
+   - Garantía definitiva: 5% del precio de adjudicación (IVA excluido).
+
+9. PENALIDADES
+   - Falta de riego que provoque pérdida de plantas: 1.500 EUR por zona afectada.
+   - Incumplimiento del calendario de podas: 800 EUR por actuación no realizada.
+   - Falta de personal respecto al equipo mínimo ofertado: 500 EUR/día/persona.
+   - Deficiencias graves de limpieza en parques: 1.000 EUR por incidencia.
+   - Acumulación de 3 penalidades graves en un trimestre: posible resolución del contrato.
+
+10. PLAZO DE PRESENTACIÓN DE OFERTAS
+30 días naturales contados desde el día siguiente a la publicación del anuncio en el Perfil del Contratante (PLACSP) y en el Boletín Oficial de la Comunidad de Madrid (BOCM).
+
+11. SUBCONTRATACIÓN
+Se permite la subcontratación de hasta el 40% del importe del contrato, previa comunicación al órgano de contratación y siempre que los subcontratistas cumplan los requisitos de solvencia correspondientes a su parte.
+
+12. REVISIÓN DE PRECIOS
+Se aplicará revisión de precios a partir del tercer año, conforme al índice de precios al consumo (IPC) general, con un límite máximo del 85% de la variación experimentada.
+
+13. NORMATIVA APLICABLE
+- Ley 9/2017, de 8 de noviembre, de Contratos del Sector Público (LCSP).
+- Real Decreto 1098/2001, de 12 de octubre, Reglamento General de la LCAP (en lo no derogado).
+- Ordenanzas municipales del Ayuntamiento de Alcobendas sobre parques y jardines.
+
+Alcobendas, a 15 de abril de 2026.
+
+El Alcalde-Presidente,
+Fdo.: [Nombre del Alcalde]
