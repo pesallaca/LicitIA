@@ -1,0 +1,10 @@
+node_modules
+dist
+.env
+*.db
+server/data/*.db
+codigo_antiguo
+.git
+.gitignore
+*.md
+*.zip
