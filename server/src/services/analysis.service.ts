@@ -3,6 +3,8 @@ import { getLLMProvider } from './llm.service.js';
 import type { LLMMessage, LLMResponse } from './llm-providers/base.js';
 import { PDFParse } from 'pdf-parse';
 
+const MAX_TENDER_CHARS = 8000;
+
 /**
  * Construye el prompt completo con el pliego incrustado.
  * Para modelos pequeños (llama3.1:8b) es crítico que todo vaya en un solo
@@ -69,6 +71,14 @@ export interface AnalysisRow {
   created_at: string;
 }
 
+export function getRecentAnalysisCountByUser(userId: number, withinHours = 1): number {
+  const db = getDb();
+  const row = db.prepare(
+    `SELECT COUNT(*) as total FROM analyses WHERE user_id = ? AND created_at >= datetime('now', ?)`
+  ).get(userId, `-${withinHours} hour`) as { total: number };
+  return row.total;
+}
+
 export function createAnalysisRecord(input: AnalysisInput): number {
   const db = getDb();
   const content = input.text || input.url || null;
@@ -128,6 +138,11 @@ export async function extractTextFromFile(base64Data: string, mimeType: string):
   return buffer.toString('utf-8');
 }
 
+function limitTenderContent(text: string): string {
+  if (text.length <= MAX_TENDER_CHARS) return text;
+  return `${text.slice(0, MAX_TENDER_CHARS)}\n\n[Texto truncado automáticamente. Se han enviado solo los primeros ${MAX_TENDER_CHARS} caracteres para evitar saturar el modelo.]`;
+}
+
 export async function buildMessages(input: AnalysisInput): Promise<LLMMessage[]> {
   let tenderContent = '';
 
@@ -155,6 +170,9 @@ export async function buildMessages(input: AnalysisInput): Promise<LLMMessage[]>
     tenderContent = 'ERROR: No se ha proporcionado contenido del pliego. El usuario debe pegar el texto completo.';
   }
 
+  const originalLength = tenderContent.length;
+  tenderContent = limitTenderContent(tenderContent);
+
   // Prompt unificado: instrucciones + pliego en un solo bloque
   const fullPrompt = buildAnalysisPrompt(tenderContent);
 
@@ -169,6 +187,9 @@ export async function buildMessages(input: AnalysisInput): Promise<LLMMessage[]>
   console.log('[Analysis] ====== PROMPT DEBUG ======');
   console.log(`[Analysis] Input type: ${input.inputType}`);
   console.log(`[Analysis] Texto del pliego: ${tenderContent.length} chars`);
+  if (originalLength > MAX_TENDER_CHARS) {
+    console.log(`[Analysis] Texto truncado: ${originalLength} -> ${tenderContent.length} chars (límite ${MAX_TENDER_CHARS})`);
+  }
   console.log(`[Analysis] Prompt total (con instrucciones): ${fullPrompt.length} chars`);
   console.log(`[Analysis] Estructura: 1 mensaje user con prompt unificado`);
   console.log(`[Analysis] Primeros 300 chars del pliego:`);

@@ -8,6 +8,7 @@ interface UserRow {
   email: string;
   password_hash: string;
   name: string | null;
+  is_admin: number;
   created_at: string;
 }
 
@@ -15,11 +16,12 @@ export interface SafeUser {
   id: number;
   email: string;
   name: string | null;
+  is_admin: boolean;
   created_at: string;
 }
 
 function toSafeUser(row: UserRow): SafeUser {
-  return { id: row.id, email: row.email, name: row.name, created_at: row.created_at };
+  return { id: row.id, email: row.email, name: row.name, is_admin: !!row.is_admin, created_at: row.created_at };
 }
 
 export async function registerUser(email: string, password: string, name?: string): Promise<{ user: SafeUser; token: string }> {
@@ -56,8 +58,18 @@ export function getUserById(userId: number): SafeUser | null {
   return user ? toSafeUser(user) : null;
 }
 
+export function isUserAdmin(userId: number): boolean {
+  const db = getDb();
+  const row = db.prepare('SELECT is_admin FROM users WHERE id = ?').get(userId) as { is_admin: number } | undefined;
+  return !!row?.is_admin;
+}
+
 function generateToken(userId: number, email: string): string {
-  return jwt.sign({ userId, email }, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRES_IN });
+  return jwt.sign(
+    { userId, email },
+    config.JWT_SECRET,
+    { expiresIn: config.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] }
+  );
 }
 
 export function verifyToken(token: string): { userId: number; email: string } {

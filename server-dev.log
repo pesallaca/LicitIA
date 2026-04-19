@@ -1,0 +1,74 @@
+◇ injected env (8) from ../.env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+[DB] Migraciones aplicadas correctamente
+[Scraper] Obteniendo feed ATOM de PLACSP...
+[Scraper] Programado cada 6 horas
+[Server] LicitIA corriendo en http://localhost:3001
+[Server] Entorno: development
+[Server] LLM: openai (gpt-4o-mini)
+[Scraper] Feed recibido: 1318 KB
+[Scraper] 50 entries encontradas en el feed
+[Scraper] 50 licitaciones guardadas/actualizadas
+[Analysis] ====== RAW BODY DUMP ======
+{
+  "inputType": "file",
+  "file": {
+    "data": "JVBERi0xLjQKJeLjz9MKMSAwIG9iago8PC9GaWx0ZXIvRmxhdGVEZWNvZGUvTGVuZ3RoIDI1OTYvTiAzPj5zdHJlYW0KeJydlndUU9kWh8+9N71QkhCKlNBraFICSA29SJEuKjEJEErAkAAiNkRUcERRkaYIMijggKNDkbEiioUBUbHrBBlE1HFwFBuWSWStGd+8ee/Nm98f935rn73P3Wfvfda6AJD8gwXCTFgJgAyhWBTh58WIjYtnYAcBDPAAA2wA4HCzs0IW+EYCmQJ82IxsmRP4F726DiD5+yrTP4zBAP+flLlZIjEAUJiM5/L42VwZF8k4PVecJbdPyZi2NE3OMErOIlmCMlaTc/IsW3z2mWUPOfMyhDwZy3PO4mXw5Nwn4405Er6MkWAZF+cI+LkyviZjg3RJhkDGb+SxGXxONgAoktwu5nNTZGwtY5IoMoIt43kA4EjJX/DSL1jMzxPLD8XOzFouEiSniBkmXFOGjZMTi+HP... [707336 chars total]",
+    "mimeType": "application/pdf",
+    "name": "DOC202604161207133436_2026 PCAP.pdf"
+  }
+}
+[Analysis] ==============================
+[Analysis] ====== AFTER ZOD PARSE ======
+[Analysis] inputType: file
+[Analysis] text: VACÍO/undefined
+[Analysis] url: VACÍO/undefined
+[Analysis] file: DOC202604161207133436_2026 PCAP.pdf
+[Analysis] ================================
+[Analysis] Texto extraído del archivo: 45829 chars
+[Analysis] ====== PROMPT DEBUG ======
+[Analysis] Input type: file
+[Analysis] Texto del pliego: 8115 chars
+[Analysis] Texto truncado: 45829 -> 8115 chars (límite 8000)
+[Analysis] Prompt total (con instrucciones): 9871 chars
+[Analysis] Estructura: 1 mensaje user con prompt unificado
+[Analysis] Primeros 300 chars del pliego:
+PLIEGO DE CLÁUSULAS ADMINISTRATIVAS PARTICULARES PARA LA
+CONTRATACIÓN CON CARÁCTER ORDINARIO MEDIANTE
+PROCEDIMIENTO ABIERTO SIMPLIFICADO PARA LA CONTRATACIÓN DE
+SUMINISTRO DE HORMIGÓN EN EL MUNICIPIO DE RIVAS VACIAMADRID.
+EXPEDIENTE DE CONTRATACION Nº 3436/2026.
+I. OBJETO DEL CONTRATO.
+El presente p
+[Analysis] ============================
+[LLM] Usando proveedor: openai
+[Analysis] onDone llamado: 4270 chars, undefined tokens, 16917ms
+[Analysis] DB actualizada para análisis #8
+9:21:02 AM [tsx] change in ./src/routes/analysis.routes.ts Restarting...
+c◇ injected env (8) from ../.env // tip: ⌁ auth for agents [www.vestauth.com]
+[DB] Migraciones aplicadas correctamente
+[Scraper] Obteniendo feed ATOM de PLACSP...
+[Scraper] Programado cada 6 horas
+node:events:486
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1948:16)
+    at listenInCluster (node:net:2005:12)
+    at Server.listen (node:net:2110:7)
+    at app.listen (/root/LicitIA/server/node_modules/express/lib/application.js:635:24)
+    at <anonymous> (/root/LicitIA/server/src/index.ts:58:5)
+    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1984:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 3001
+}
+
+Node.js v24.14.1

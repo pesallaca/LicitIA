@@ -9,7 +9,9 @@ import {
   getAnalysesByUser,
   getAnalysisById,
   deleteAnalysis,
+  getRecentAnalysisCountByUser,
 } from '../services/analysis.service.js';
+import { isUserAdmin } from '../services/auth.service.js';
 
 const router = Router();
 
@@ -26,6 +28,9 @@ const analysisSchema = z.object({
 
 // POST /api/analysis - Nuevo análisis con streaming SSE
 router.post('/', authMiddleware, async (req, res) => {
+  res.status(503).json({ error: 'Servicio en mantenimiento. El análisis está temporalmente desactivado.' });
+  return;
+
   try {
     // Debug RAW: DUMP COMPLETO del body
     console.log('[Analysis] ====== RAW BODY DUMP ======');
@@ -59,6 +64,15 @@ router.post('/', authMiddleware, async (req, res) => {
           : 'No se ha proporcionado contenido para analizar. Pega el texto del pliego en el editor.'
       });
       return;
+    }
+
+    const admin = isUserAdmin(userId);
+    if (!admin) {
+      const recentCount = getRecentAnalysisCountByUser(userId, 1);
+      if (recentCount >= 10) {
+        res.status(429).json({ error: 'Has alcanzado el límite de 10 análisis por hora. Inténtalo más tarde.' });
+        return;
+      }
     }
 
     // Crear registro en DB

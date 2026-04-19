@@ -24,19 +24,8 @@ const COOKIE_OPTIONS = {
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
 };
 
-router.post('/register', async (req, res) => {
-  try {
-    const body = registerSchema.parse(req.body);
-    const { user, token } = await registerUser(body.email, body.password, body.name);
-    res.cookie('licitia_token', token, COOKIE_OPTIONS);
-    res.status(201).json({ user });
-  } catch (err: any) {
-    if (err instanceof z.ZodError) {
-      res.status(400).json({ error: err.errors[0].message });
-      return;
-    }
-    res.status(400).json({ error: err.message });
-  }
+router.post('/register', async (_req, res) => {
+  res.status(403).json({ error: 'El registro público está deshabilitado. El acceso solo está disponible para usuarios autorizados.' });
 });
 
 router.post('/login', async (req, res) => {

@@ -43,6 +43,7 @@ export class OpenAIProvider implements LLMProvider {
   async chatStream(messages: LLMMessage[], callbacks: LLMStreamCallbacks, model?: string): Promise<void> {
     const start = Date.now();
     let fullContent = '';
+    let buffer = '';
 
     try {
       const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -72,17 +73,55 @@ export class OpenAIProvider implements LLMProvider {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split('\n\n');
+        buffer = events.pop() || '';
 
-        for (const line of lines) {
-          const data = line.slice(6);
-          if (data === '[DONE]') continue;
-          const json = JSON.parse(data);
-          const delta = json.choices[0]?.delta?.content;
-          if (delta) {
-            fullContent += delta;
-            callbacks.onChunk(delta);
+        for (const event of events) {
+          const lines = event.split('\n');
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const data = line.slice(6).trim();
+            if (!data || data === '[DONE]') continue;
+
+            try {
+              const json = JSON.parse(data);
+              const delta = json.choices?.[0]?.delta?.content;
+              if (typeof delta === 'string' && delta.length > 0) {
+                fullContent += delta;
+                callbacks.onChunk(delta);
+                continue;
+              }
+
+              const text = json.choices?.[0]?.message?.content;
+              if (typeof text === 'string' && text.length > 0) {
+                fullContent += text;
+                callbacks.onChunk(text);
+              }
+            } catch {
+              fullContent += data;
+              callbacks.onChunk(data);
+            }
+          }
+        }
+      }
+
+      if (buffer.trim()) {
+        const trailingLines = buffer.split('\n');
+        for (const line of trailingLines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (!data || data === '[DONE]') continue;
+          try {
+            const json = JSON.parse(data);
+            const delta = json.choices?.[0]?.delta?.content ?? json.choices?.[0]?.message?.content;
+            if (typeof delta === 'string' && delta.length > 0) {
+              fullContent += delta;
+              callbacks.onChunk(delta);
+            }
+          } catch {
+            fullContent += data;
+            callbacks.onChunk(data);
           }
         }
       }

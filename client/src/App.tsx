@@ -1,13 +1,10 @@
-import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginForm from './components/auth/LoginForm';
-import RegisterForm from './components/auth/RegisterForm';
 import AppLayout from './components/layout/AppLayout';
 import { Loader2 } from 'lucide-react';
 
 function AuthGate() {
   const { user, loading } = useAuth();
-  const [showRegister, setShowRegister] = useState(false);
 
   if (loading) {
     return (
@@ -18,9 +15,7 @@ function AuthGate() {
   }
 
   if (!user) {
-    return showRegister
-      ? <RegisterForm onSwitch={() => setShowRegister(false)} />
-      : <LoginForm onSwitch={() => setShowRegister(true)} />;
+    return <LoginForm />;
   }
 
   return <AppLayout />;

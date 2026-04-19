@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Briefcase, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
+export default function LoginForm() {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -75,12 +75,6 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
             {loading ? <><Loader2 className="animate-spin" size={18} /> Entrando...</> : 'Entrar'}
           </button>
 
-          <p className="mt-4 text-center text-sm">
-            ¿No tienes cuenta?{' '}
-            <button type="button" onClick={onSwitch} className="font-bold underline">
-              Regístrate
-            </button>
-          </p>
         </form>
       </div>
     </div>

@@ -1,5 +1,4 @@
 import PDFDocument from 'pdfkit';
-import type { Readable } from 'stream';
 
 interface AnalysisData {
   id: number;
@@ -8,7 +7,7 @@ interface AnalysisData {
   created_at: string;
 }
 
-export function generateAnalysisPdf(analysis: AnalysisData): PDFDocument {
+export function generateAnalysisPdf(analysis: AnalysisData): any {
   const doc = new PDFDocument({
     size: 'A4',
     margin: 50,
@@ -51,7 +50,7 @@ export function generateAnalysisPdf(analysis: AnalysisData): PDFDocument {
   return doc;
 }
 
-function renderMarkdown(doc: PDFDocument, markdown: string): void {
+function renderMarkdown(doc: any, markdown: string): void {
   const lines = markdown.split('\n');
 
   for (const line of lines) {
