@@ -2,6 +2,11 @@ node_modules/
 dist/
 .env
 *.db
+*.db-shm
+*.db-wal
+*.log
 server/data/*.db
+server/data/*.db-shm
+server/data/*.db-wal
 codigo_antiguo/
 .DS_Store
