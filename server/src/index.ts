@@ -16,6 +16,7 @@ import { startScraperSchedule } from './services/scraper.service.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
+app.set('trust proxy', 1); // Nginx delante: usar IP real del header X-Forwarded-For
 
 // Middleware global
 app.use(cors({

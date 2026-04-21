@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { registerUser, loginUser, getUserById } from '../services/auth.service.js';
 import { authMiddleware } from '../middleware/auth.js';
@@ -28,7 +29,16 @@ router.post('/register', async (_req, res) => {
   res.status(403).json({ error: 'El registro público está deshabilitado. El acceso solo está disponible para usuarios autorizados.' });
 });
 
-router.post('/login', async (req, res) => {
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  message: { error: 'Demasiados intentos de login. Prueba de nuevo en 15 minutos.' },
+});
+
+router.post('/login', loginLimiter, async (req, res) => {
   try {
     const body = loginSchema.parse(req.body);
     const { user, token } = await loginUser(body.email, body.password);
