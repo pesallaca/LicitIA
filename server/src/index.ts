@@ -55,7 +55,7 @@ runMigrations();
 // Iniciar scraper de PLACSP
 startScraperSchedule();
 
-app.listen(config.PORT, () => {
+app.listen(config.PORT, '127.0.0.1', () => {
   console.log(`[Server] LicitIA corriendo en http://localhost:${config.PORT}`);
   console.log(`[Server] Entorno: ${config.NODE_ENV}`);
   console.log(`[Server] LLM: ${config.LLM_PROVIDER} (${config.LLM_PROVIDER === 'ollama' ? config.OLLAMA_MODEL : config.OPENAI_MODEL})`);

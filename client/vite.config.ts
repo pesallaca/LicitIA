@@ -11,6 +11,7 @@ export default defineConfig({
     },
   },
   server: {
+    allowedHosts: ['licitia.todoespsicologia.es'],
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
