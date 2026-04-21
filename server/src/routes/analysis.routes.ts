@@ -28,8 +28,11 @@ const analysisSchema = z.object({
 
 // POST /api/analysis - Nuevo análisis con streaming SSE
 router.post('/', authMiddleware, async (req, res) => {
-  res.status(503).json({ error: 'Servicio en mantenimiento. El análisis está temporalmente desactivado.' });
-  return;
+  const MAINTENANCE_MODE = true; // cambiar a false cuando se reactive el análisis
+  if (MAINTENANCE_MODE) {
+    res.status(503).json({ error: 'Servicio en mantenimiento. El análisis está temporalmente desactivado.' });
+    return;
+  }
 
   try {
     // Debug RAW: DUMP COMPLETO del body
@@ -44,18 +47,23 @@ router.post('/', authMiddleware, async (req, res) => {
     const body = analysisSchema.parse(req.body);
     const userId = req.userId!;
 
+    // Extraer a locales inmutables para que TypeScript pueda narrow correctamente
+    const { inputType, text, url, file } = body;
+
     // Debug: qué queda DESPUÉS de zod
+    const textInfo = text === undefined ? 'VACÍO/undefined' : `${text.length} chars`;
+    const fileInfo = file === undefined ? 'VACÍO/undefined' : file.name;
     console.log('[Analysis] ====== AFTER ZOD PARSE ======');
-    console.log(`[Analysis] inputType: ${body.inputType}`);
-    console.log(`[Analysis] text: ${body.text ? `${body.text.length} chars` : 'VACÍO/undefined'}`);
-    console.log(`[Analysis] url: ${body.url || 'VACÍO/undefined'}`);
-    console.log(`[Analysis] file: ${body.file ? body.file.name : 'VACÍO/undefined'}`);
+    console.log(`[Analysis] inputType: ${inputType}`);
+    console.log(`[Analysis] text: ${textInfo}`);
+    console.log(`[Analysis] url: ${url ?? 'VACÍO/undefined'}`);
+    console.log(`[Analysis] file: ${fileInfo}`);
     console.log('[Analysis] ================================');
 
     // Validar que hay contenido real para analizar
-    const hasText = body.text && body.text.trim().length > 0;
-    const hasUrl = body.url && body.url.trim().length > 0;
-    const hasFile = !!body.file;
+    const hasText = (text?.trim().length ?? 0) > 0;
+    const hasUrl = (url?.trim().length ?? 0) > 0;
+    const hasFile = file !== undefined;
     if (!hasText && !hasFile) {
       console.warn('[Analysis] RECHAZADO: no hay texto ni archivo para analizar');
       res.status(400).json({
@@ -78,10 +86,10 @@ router.post('/', authMiddleware, async (req, res) => {
     // Crear registro en DB
     const analysisId = createAnalysisRecord({
       userId,
-      inputType: body.inputType,
-      text: body.text,
-      url: body.url,
-      fileName: body.file?.name,
+      inputType,
+      text,
+      url,
+      fileName: file?.name,
     });
 
     // Configurar SSE
