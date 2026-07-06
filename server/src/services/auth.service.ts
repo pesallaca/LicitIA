@@ -36,11 +36,13 @@ function toSafeUser(row: UserRow): SafeUser {
 export async function registerUser(email: string, password: string, name?: string): Promise<{ user: SafeUser; token: string }> {
   const db = getDb();
 
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+  // Email normalizado: con registro público, User@x.com y user@x.com son la misma cuenta
+  const emailNorm = email.trim().toLowerCase();
+  const existing = db.prepare('SELECT id FROM users WHERE LOWER(email) = ?').get(emailNorm);
   if (existing) throw new Error('El email ya está registrado');
 
   const passwordHash = await bcrypt.hash(password, 10);
-  const result = db.prepare('INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)').run(email, passwordHash, name || null);
+  const result = db.prepare('INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)').run(emailNorm, passwordHash, name || null);
 
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid) as UserRow;
   const token = generateToken(user.id, user.email);
@@ -51,7 +53,8 @@ export async function registerUser(email: string, password: string, name?: strin
 export async function loginUser(email: string, password: string): Promise<{ user: SafeUser; token: string }> {
   const db = getDb();
 
-  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email) as UserRow | undefined;
+  // LOWER() en la búsqueda: compatible con cuentas antiguas guardadas con mayúsculas
+  const user = db.prepare('SELECT * FROM users WHERE LOWER(email) = ?').get(email.trim().toLowerCase()) as UserRow | undefined;
   if (!user) throw new Error('Credenciales incorrectas');
 
   const valid = await bcrypt.compare(password, user.password_hash);

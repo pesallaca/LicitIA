@@ -20,7 +20,8 @@ router.get('/tenders', authMiddleware, (req, res) => {
 
 // GET /api/market/relevant — licitaciones que encajan con el perfil de empresa
 router.get('/relevant', authMiddleware, (req, res) => {
-  const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+  // Acotado a [1, 50]: un limit negativo o NaN nunca debe llegar al slice
+  const limit = Math.max(1, Math.min(parseInt(req.query.limit as string) || 20, 50));
   const result = getRelevantTenders(req.userId!, limit);
   res.json(result);
 });

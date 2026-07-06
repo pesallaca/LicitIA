@@ -44,3 +44,10 @@ cd server && npm run typecheck
 | `SHARE_EXPIRY_DAYS` | Caducidad de los enlaces compartidos (def. 30) |
 
 El scraping manual (`POST /api/market/scrape`) es solo para administradores; el sistema se actualiza solo cada 6 h.
+
+## Limitaciones conocidas (candidatas a fase 2)
+
+- El freno anti-abuso del registro es rate-limit por IP (5/hora): suficiente para arrancar, pero antes de una campaña de captación conviene añadir **verificación de email** (que además habilita el reset de contraseña).
+- Sin pasarela de pago todavía: el plan `pro` se asigna manualmente en BD.
+- Ficheros `.doc/.docx` no soportados en el análisis (solo PDF y texto).
+- Pliegos que exceden `MAX_TENDER_CHARS` se truncan (chunking/RAG pendiente).

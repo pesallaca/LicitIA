@@ -58,7 +58,9 @@ export default function ProfilePage() {
       });
       setMsg('Perfil guardado. La pestaña Mercado ya muestra tus licitaciones relevantes.');
     } catch (err: any) {
-      setError(err.message);
+      // Errores de red (fetch) dan mensajes técnicos en inglés: traducir al usuario
+      const msg = err?.message || '';
+      setError(/fetch|network|json/i.test(msg) ? 'No hay conexión con el servidor. Inténtalo de nuevo.' : msg || 'No se pudo guardar el perfil.');
     } finally {
       setSaving(false);
     }
