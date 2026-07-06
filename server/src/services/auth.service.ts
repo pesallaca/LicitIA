@@ -9,6 +9,7 @@ interface UserRow {
   password_hash: string;
   name: string | null;
   is_admin: number;
+  plan: string | null;
   created_at: string;
 }
 
@@ -17,11 +18,19 @@ export interface SafeUser {
   email: string;
   name: string | null;
   is_admin: boolean;
+  plan: string;
   created_at: string;
 }
 
 function toSafeUser(row: UserRow): SafeUser {
-  return { id: row.id, email: row.email, name: row.name, is_admin: !!row.is_admin, created_at: row.created_at };
+  return {
+    id: row.id,
+    email: row.email,
+    name: row.name,
+    is_admin: !!row.is_admin,
+    plan: row.plan || 'free',
+    created_at: row.created_at,
+  };
 }
 
 export async function registerUser(email: string, password: string, name?: string): Promise<{ user: SafeUser; token: string }> {

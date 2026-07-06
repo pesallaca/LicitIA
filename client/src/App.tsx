@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginForm from './components/auth/LoginForm';
+import RegisterForm from './components/auth/RegisterForm';
 import AppLayout from './components/layout/AppLayout';
 import { Loader2 } from 'lucide-react';
 
 function AuthGate() {
   const { user, loading } = useAuth();
+  const [vista, setVista] = useState<'login' | 'register'>('login');
 
   if (loading) {
     return (
@@ -15,7 +18,9 @@ function AuthGate() {
   }
 
   if (!user) {
-    return <LoginForm />;
+    return vista === 'login'
+      ? <LoginForm onSwitch={() => setVista('register')} />
+      : <RegisterForm onSwitch={() => setVista('login')} />;
   }
 
   return <AppLayout />;

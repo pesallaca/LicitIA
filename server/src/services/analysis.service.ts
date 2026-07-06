@@ -1,9 +1,10 @@
 import { getDb } from '../db/connection.js';
-import { getLLMProvider } from './llm.service.js';
+import { config } from '../config.js';
 import type { LLMMessage, LLMResponse } from './llm-providers/base.js';
 import { PDFParse } from 'pdf-parse';
 
-const MAX_TENDER_CHARS = 8000;
+// Configurable por entorno: los pliegos reales superan de largo los 8k chars
+const MAX_TENDER_CHARS = config.MAX_TENDER_CHARS;
 
 /**
  * Construye el prompt completo con el pliego incrustado.
@@ -158,7 +159,6 @@ export async function buildMessages(input: AnalysisInput): Promise<LLMMessage[]>
   if (!tenderContent.trim() && input.fileData && input.fileMimeType) {
     try {
       const extracted = await extractTextFromFile(input.fileData, input.fileMimeType);
-      console.log(`[Analysis] Texto extraído del archivo: ${extracted.length} chars`);
       tenderContent += extracted;
     } catch (err) {
       console.error('[Analysis] Error extrayendo texto del archivo:', err);
@@ -183,18 +183,10 @@ export async function buildMessages(input: AnalysisInput): Promise<LLMMessage[]>
     { role: 'user', content: fullPrompt },
   ];
 
-  // Debug
-  console.log('[Analysis] ====== PROMPT DEBUG ======');
-  console.log(`[Analysis] Input type: ${input.inputType}`);
-  console.log(`[Analysis] Texto del pliego: ${tenderContent.length} chars`);
+  // Solo métricas en logs — NUNCA el contenido del pliego del cliente
   if (originalLength > MAX_TENDER_CHARS) {
-    console.log(`[Analysis] Texto truncado: ${originalLength} -> ${tenderContent.length} chars (límite ${MAX_TENDER_CHARS})`);
+    console.log(`[Analysis] Pliego truncado: ${originalLength} -> ${tenderContent.length} chars (límite ${MAX_TENDER_CHARS})`);
   }
-  console.log(`[Analysis] Prompt total (con instrucciones): ${fullPrompt.length} chars`);
-  console.log(`[Analysis] Estructura: 1 mensaje user con prompt unificado`);
-  console.log(`[Analysis] Primeros 300 chars del pliego:`);
-  console.log(tenderContent.slice(0, 300));
-  console.log('[Analysis] ============================');
 
   return messages;
 }

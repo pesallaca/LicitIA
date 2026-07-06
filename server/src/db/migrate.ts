@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getDb } from './connection.js';
+import { runVersionedMigrations } from './migrations.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -14,5 +15,7 @@ export function runMigrations(): void {
   }
   const schema = fs.readFileSync(schemaPath, 'utf-8');
   db.exec(schema);
+  // Migraciones versionadas por encima del esquema base
+  runVersionedMigrations(db);
   console.log('[DB] Migraciones aplicadas correctamente');
 }

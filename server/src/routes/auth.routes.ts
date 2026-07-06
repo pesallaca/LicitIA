@@ -25,8 +25,33 @@ const COOKIE_OPTIONS = {
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
 };
 
-router.post('/register', async (_req, res) => {
-  res.status(403).json({ error: 'El registro público está deshabilitado. El acceso solo está disponible para usuarios autorizados.' });
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'Demasiados registros desde esta conexión. Prueba de nuevo más tarde.' },
+});
+
+// Registro self-service: la puerta de entrada del SaaS.
+// Se puede cerrar temporalmente con ALLOW_REGISTRATION=false (sin tocar código).
+router.post('/register', registerLimiter, async (req, res) => {
+  if (!config.ALLOW_REGISTRATION) {
+    res.status(403).json({ error: 'El registro está temporalmente cerrado. Vuelve a intentarlo más adelante.' });
+    return;
+  }
+  try {
+    const body = registerSchema.parse(req.body);
+    const { user, token } = await registerUser(body.email, body.password, body.name);
+    res.cookie('licitia_token', token, COOKIE_OPTIONS);
+    res.status(201).json({ user });
+  } catch (err: any) {
+    if (err instanceof z.ZodError) {
+      res.status(400).json({ error: err.errors[0].message });
+      return;
+    }
+    res.status(409).json({ error: err.message });
+  }
 });
 
 const loginLimiter = rateLimit({

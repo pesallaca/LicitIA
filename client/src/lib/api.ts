@@ -21,6 +21,10 @@ export function apiPost<T>(path: string, body: unknown): Promise<T> {
   return request(path, { method: 'POST', body: JSON.stringify(body) });
 }
 
+export function apiPut<T>(path: string, body: unknown): Promise<T> {
+  return request(path, { method: 'PUT', body: JSON.stringify(body) });
+}
+
 export function apiDelete<T>(path: string): Promise<T> {
   return request(path, { method: 'DELETE' });
 }

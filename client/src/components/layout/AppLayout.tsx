@@ -4,6 +4,7 @@ import Header from './Header';
 import NewAnalysis from '../../pages/NewAnalysis';
 import HistoryPage from '../../pages/HistoryPage';
 import MarketPage from '../../pages/MarketPage';
+import ProfilePage from '../../pages/ProfilePage';
 
 export default function AppLayout() {
   const [activeTab, setActiveTab] = useState<Tab>('new');
@@ -17,7 +18,8 @@ export default function AppLayout() {
           <div className="max-w-5xl mx-auto">
             {activeTab === 'new' && <NewAnalysis />}
             {activeTab === 'history' && <HistoryPage />}
-            {activeTab === 'insights' && <MarketPage />}
+            {activeTab === 'insights' && <MarketPage onGoToProfile={() => setActiveTab('profile')} />}
+            {activeTab === 'profile' && <ProfilePage />}
           </div>
         </div>
       </main>

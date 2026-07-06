@@ -12,6 +12,16 @@ export const config = {
   JWT_SECRET: process.env.JWT_SECRET || 'dev-secret-change-in-production',
   JWT_EXPIRES_IN: '7d',
 
+  // Operación del SaaS (antes hardcodeado en el código)
+  MAINTENANCE_MODE: process.env.MAINTENANCE_MODE === 'true',
+  ALLOW_REGISTRATION: process.env.ALLOW_REGISTRATION !== 'false',
+  // Origen del frontend en producción (CORS). Vacío = solo mismo origen.
+  FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN || '',
+  // Límite de caracteres del pliego enviado al LLM
+  MAX_TENDER_CHARS: parseInt(process.env.MAX_TENDER_CHARS || '48000'),
+  // Caducidad de los enlaces compartidos (días)
+  SHARE_EXPIRY_DAYS: parseInt(process.env.SHARE_EXPIRY_DAYS || '30'),
+
   // LLM
   LLM_PROVIDER: (process.env.LLM_PROVIDER || 'ollama') as 'ollama' | 'openai',
   OLLAMA_URL: process.env.OLLAMA_URL || 'http://localhost:11434',

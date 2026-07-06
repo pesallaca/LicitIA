@@ -11,7 +11,9 @@ import {
   deleteAnalysis,
   getRecentAnalysisCountByUser,
 } from '../services/analysis.service.js';
-import { isUserAdmin } from '../services/auth.service.js';
+import { isUserAdmin, getUserById } from '../services/auth.service.js';
+import { getQuotaStatus } from '../services/plan.service.js';
+import { config } from '../config.js';
 
 const router = Router();
 
@@ -28,47 +30,25 @@ const analysisSchema = z.object({
 
 // POST /api/analysis - Nuevo análisis con streaming SSE
 router.post('/', authMiddleware, async (req, res) => {
-  const MAINTENANCE_MODE = true; // cambiar a false cuando se reactive el análisis
-  if (MAINTENANCE_MODE) {
+  // Mantenimiento controlado por entorno (MAINTENANCE_MODE=true), nunca hardcodeado
+  if (config.MAINTENANCE_MODE) {
     res.status(503).json({ error: 'Servicio en mantenimiento. El análisis está temporalmente desactivado.' });
     return;
   }
 
   try {
-    // Debug RAW: DUMP COMPLETO del body
-    console.log('[Analysis] ====== RAW BODY DUMP ======');
-    console.log(JSON.stringify(req.body, (key, val) => {
-      // Truncar campos largos para no inundar el log
-      if (typeof val === 'string' && val.length > 500) return val.slice(0, 500) + `... [${val.length} chars total]`;
-      return val;
-    }, 2));
-    console.log('[Analysis] ==============================');
-
     const body = analysisSchema.parse(req.body);
     const userId = req.userId!;
-
-    // Extraer a locales inmutables para que TypeScript pueda narrow correctamente
     const { inputType, text, url, file } = body;
-
-    // Debug: qué queda DESPUÉS de zod
-    const textInfo = text === undefined ? 'VACÍO/undefined' : `${text.length} chars`;
-    const fileInfo = file === undefined ? 'VACÍO/undefined' : file.name;
-    console.log('[Analysis] ====== AFTER ZOD PARSE ======');
-    console.log(`[Analysis] inputType: ${inputType}`);
-    console.log(`[Analysis] text: ${textInfo}`);
-    console.log(`[Analysis] url: ${url ?? 'VACÍO/undefined'}`);
-    console.log(`[Analysis] file: ${fileInfo}`);
-    console.log('[Analysis] ================================');
 
     // Validar que hay contenido real para analizar
     const hasText = (text?.trim().length ?? 0) > 0;
     const hasUrl = (url?.trim().length ?? 0) > 0;
     const hasFile = file !== undefined;
     if (!hasText && !hasFile) {
-      console.warn('[Analysis] RECHAZADO: no hay texto ni archivo para analizar');
       res.status(400).json({
         error: hasUrl
-          ? 'Debes pegar el texto del pliego además de la URL. El modelo local no puede acceder a enlaces de internet.'
+          ? 'Debes pegar el texto del pliego además de la URL. El modelo no puede acceder a enlaces de internet.'
           : 'No se ha proporcionado contenido para analizar. Pega el texto del pliego en el editor.'
       });
       return;
@@ -76,6 +56,17 @@ router.post('/', authMiddleware, async (req, res) => {
 
     const admin = isUserAdmin(userId);
     if (!admin) {
+      // Cuota mensual según plan (free/pro) — la base de la monetización
+      const user = getUserById(userId);
+      const quota = getQuotaStatus(userId, user?.plan, false);
+      if (!quota.allowed) {
+        res.status(429).json({
+          error: `Has agotado los ${quota.limit} análisis mensuales de tu plan ${quota.planLabel}. Mejora tu plan para seguir analizando.`,
+          quota,
+        });
+        return;
+      }
+      // Freno de ráfaga: máx. 10 análisis/hora también en planes de pago
       const recentCount = getRecentAnalysisCountByUser(userId, 1);
       if (recentCount >= 10) {
         res.status(429).json({ error: 'Has alcanzado el límite de 10 análisis por hora. Inténtalo más tarde.' });
@@ -117,12 +108,12 @@ router.post('/', authMiddleware, async (req, res) => {
         res.write(`data: ${chunk}\n\n`);
       },
       onDone: (response) => {
-        console.log(`[Analysis] onDone llamado: ${response.content.length} chars, ${response.tokensUsed} tokens, ${response.durationMs}ms`);
+        // Solo metadatos en logs: nunca contenido del cliente
+        console.log(`[Analysis] #${analysisId} completado: ${response.tokensUsed ?? '?'} tokens, ${response.durationMs ?? '?'}ms`);
         try {
           updateAnalysisResult(analysisId, response.content, response);
-          console.log(`[Analysis] DB actualizada para análisis #${analysisId}`);
         } catch (err) {
-          console.error(`[Analysis] ERROR al guardar en DB:`, err);
+          console.error(`[Analysis] ERROR al guardar análisis #${analysisId} en DB:`, err instanceof Error ? err.message : err);
         }
         res.write(`data: [DONE]\n\n`);
         res.end();
@@ -138,7 +129,8 @@ router.post('/', authMiddleware, async (req, res) => {
       res.status(400).json({ error: err.errors[0].message });
       return;
     }
-    res.status(500).json({ error: err.message });
+    console.error('[Analysis] Error inesperado:', err instanceof Error ? err.message : err);
+    res.status(500).json({ error: 'No se pudo procesar el análisis. Inténtalo de nuevo.' });
   }
 });
 

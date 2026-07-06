@@ -1,11 +1,16 @@
 import crypto from 'crypto';
 import { getDb } from '../db/connection.js';
+import { config } from '../config.js';
 import { getAnalysisByIdPublic, type AnalysisRow } from './analysis.service.js';
 
 export function createShareToken(analysisId: number): string {
   const db = getDb();
   const token = crypto.randomUUID();
-  db.prepare('INSERT INTO shared_reports (analysis_id, token) VALUES (?, ?)').run(analysisId, token);
+  // Los enlaces compartidos CADUCAN (configurable, 30 días por defecto):
+  // un informe de cliente no debe quedar público para siempre.
+  db.prepare(
+    `INSERT INTO shared_reports (analysis_id, token, expires_at) VALUES (?, ?, datetime('now', ?))`
+  ).run(analysisId, token, `+${config.SHARE_EXPIRY_DAYS} days`);
   return token;
 }
 

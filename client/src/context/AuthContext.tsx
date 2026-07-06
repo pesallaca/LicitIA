@@ -5,6 +5,8 @@ interface User {
   id: number;
   email: string;
   name: string | null;
+  is_admin: boolean;
+  plan: string;
   created_at: string;
 }
 
