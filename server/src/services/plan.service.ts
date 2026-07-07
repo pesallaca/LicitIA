@@ -17,9 +17,13 @@ export function normalizePlan(plan: string | null | undefined): PlanId {
 
 export function getMonthlyAnalysisCount(userId: number): number {
   const db = getDb();
+  // Solo cuentan los análisis COMPLETADOS (con resultado): un fallo del LLM
+  // no debe robarle cuota al usuario. El freno anti-ráfaga por hora sí cuenta
+  // todos los intentos (getRecentAnalysisCountByUser), para evitar abuso.
   const row = db.prepare(
     `SELECT COUNT(*) as total FROM analyses
-     WHERE user_id = ? AND created_at >= datetime('now', 'start of month')`
+     WHERE user_id = ? AND result_markdown IS NOT NULL
+       AND created_at >= datetime('now', 'start of month')`
   ).get(userId) as { total: number };
   return row.total;
 }
