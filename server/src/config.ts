@@ -17,8 +17,11 @@ export const config = {
   ALLOW_REGISTRATION: process.env.ALLOW_REGISTRATION !== 'false',
   // Origen del frontend en producción (CORS). Vacío = solo mismo origen.
   FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN || '',
-  // Límite de caracteres del pliego enviado al LLM
-  MAX_TENDER_CHARS: parseInt(process.env.MAX_TENDER_CHARS || '48000'),
+  // Límite de caracteres del pliego enviado al LLM.
+  // Calibrado para el free tier de Groq (12k TPM): el español tokeniza a
+  // ~3 chars/token, así que 30k chars + prompt ≈ 10-11k tokens con margen.
+  // Con un tier de pago se puede subir vía env sin tocar código.
+  MAX_TENDER_CHARS: parseInt(process.env.MAX_TENDER_CHARS || '30000'),
   // Caducidad de los enlaces compartidos (días)
   SHARE_EXPIRY_DAYS: parseInt(process.env.SHARE_EXPIRY_DAYS || '30'),
 
