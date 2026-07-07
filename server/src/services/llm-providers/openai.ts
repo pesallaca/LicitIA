@@ -4,15 +4,19 @@ export class OpenAIProvider implements LLMProvider {
   readonly name = 'openai';
   private apiKey: string;
   private defaultModel: string;
+  private baseUrl: string;
 
-  constructor(apiKey: string, model = 'gpt-4o-mini') {
+  // baseUrl configurable: cualquier API compatible con OpenAI sirve
+  // (Featherless, Groq, Together, vLLM propio...), no solo OpenAI.
+  constructor(apiKey: string, model = 'gpt-4o-mini', baseUrl = 'https://api.openai.com/v1') {
     this.apiKey = apiKey;
     this.defaultModel = model;
+    this.baseUrl = baseUrl.replace(/\/$/, '');
   }
 
   async chat(messages: LLMMessage[], model?: string): Promise<LLMResponse> {
     const start = Date.now();
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    const res = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -46,7 +50,7 @@ export class OpenAIProvider implements LLMProvider {
     let buffer = '';
 
     try {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      const res = await fetch(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

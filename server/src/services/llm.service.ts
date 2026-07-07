@@ -10,7 +10,7 @@ export function getLLMProvider(): LLMProvider {
 
   if (config.LLM_PROVIDER === 'openai') {
     if (!config.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY no configurada');
-    provider = new OpenAIProvider(config.OPENAI_API_KEY, config.OPENAI_MODEL);
+    provider = new OpenAIProvider(config.OPENAI_API_KEY, config.OPENAI_MODEL, config.OPENAI_BASE_URL);
   } else {
     provider = new OllamaProvider(config.OLLAMA_URL, config.OLLAMA_MODEL);
   }

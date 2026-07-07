@@ -28,6 +28,8 @@ export const config = {
   OLLAMA_MODEL: process.env.OLLAMA_MODEL || 'llama3.1:8b',
   OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
   OPENAI_MODEL: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+  // API compatible con OpenAI (Featherless, Groq...) cambiando solo la URL
+  OPENAI_BASE_URL: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
 
   // DB
   DB_PATH: process.env.DB_PATH || path.resolve(__dirname, '../data/licitia.db'),

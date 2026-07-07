@@ -17,7 +17,7 @@ interface Usage {
   remaining: number;
 }
 
-export default function ProfilePage() {
+export default function ProfilePage({ onAyudaCpv }: { onAyudaCpv?: () => void }) {
   const [cpv, setCpv] = useState('');
   const [keywords, setKeywords] = useState('');
   const [minBudget, setMinBudget] = useState('');
@@ -116,6 +116,14 @@ export default function ProfilePage() {
           />
           <p className="text-xs opacity-50 mt-1">
             El CPV clasifica los contratos públicos. Basta el prefijo: «72» cubre todo lo informático.
+            {onAyudaCpv && (
+              <>
+                {' '}
+                <button type="button" onClick={onAyudaCpv} className="underline font-bold">
+                  ¿Qué es el CPV?
+                </button>
+              </>
+            )}
           </p>
         </div>
 

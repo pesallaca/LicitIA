@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Briefcase, LayoutDashboard, History, TrendingUp, Building2, Menu, X, LogOut } from 'lucide-react';
+import { Briefcase, LayoutDashboard, History, TrendingUp, Building2, GraduationCap, Menu, X, LogOut } from 'lucide-react';
 import NavItem from '../ui/NavItem';
 import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../lib/cn';
 
-export type Tab = 'new' | 'history' | 'insights' | 'profile';
+export type Tab = 'new' | 'history' | 'insights' | 'profile' | 'academy';
 
 export default function Sidebar({ activeTab, onTabChange }: { activeTab: Tab; onTabChange: (tab: Tab) => void }) {
   const [open, setOpen] = useState(true);
@@ -27,6 +27,7 @@ export default function Sidebar({ activeTab, onTabChange }: { activeTab: Tab; on
         <NavItem icon={<History size={20} />} label="Historial" active={activeTab === 'history'} collapsed={!open} onClick={() => onTabChange('history')} />
         <NavItem icon={<TrendingUp size={20} />} label="Mercado" active={activeTab === 'insights'} collapsed={!open} onClick={() => onTabChange('insights')} />
         <NavItem icon={<Building2 size={20} />} label="Mi Empresa" active={activeTab === 'profile'} collapsed={!open} onClick={() => onTabChange('profile')} />
+        <NavItem icon={<GraduationCap size={20} />} label="Academia" active={activeTab === 'academy'} collapsed={!open} onClick={() => onTabChange('academy')} />
       </nav>
 
       <div className="p-4 border-t border-[#E4E3E0]/10 space-y-2">

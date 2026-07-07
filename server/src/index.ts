@@ -34,7 +34,7 @@ app.use(cookieParser());
 
 // Health check (incluye el estado REAL de mantenimiento para la UI)
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', version: '1.1.0', maintenance: config.MAINTENANCE_MODE });
+  res.json({ status: 'ok', version: '1.2.0', maintenance: config.MAINTENANCE_MODE });
 });
 
 // Rutas

@@ -7,6 +7,7 @@ const TITLES: Record<Tab, string> = {
   history: 'Historial de Consultas',
   insights: 'Inteligencia de Mercado',
   profile: 'Perfil de Empresa',
+  academy: 'Academia del Licitador',
 };
 
 export default function Header({ activeTab }: { activeTab: Tab }) {
