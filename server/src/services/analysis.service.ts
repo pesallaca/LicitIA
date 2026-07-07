@@ -47,6 +47,18 @@ Ahora genera el informe estratégico con EXACTAMENTE estos bloques, usando los d
 Formato: Markdown estructurado. Usa los datos EXACTOS del pliego (cifras, plazos, porcentajes).`;
 }
 
+/** Título legible para el historial: intenta usar el OBJETO del contrato;
+ *  si no, el primer encabezado; si no, un texto por defecto. */
+export function extractTitle(markdown: string): string {
+  // 1. Preferir el "Objeto" del pliego: "Objeto del contrato:", "Objeto:", etc.
+  const objeto = markdown.match(/objeto\b[^:\n]{0,40}?:\s*\**\s*([^\n*][^\n.]{5,120})/i);
+  if (objeto) return objeto[1].replace(/\*/g, '').trim().slice(0, 120);
+  // 2. Si no, el primer encabezado del informe
+  const heading = markdown.match(/^#{1,3}\s*(?:\d+\.\s*)?(.+)/m);
+  if (heading) return heading[1].replace(/[*#]/g, '').trim().slice(0, 120);
+  return 'Análisis de licitación';
+}
+
 interface AnalysisInput {
   userId: number;
   inputType: 'text' | 'url' | 'file';
@@ -91,9 +103,7 @@ export function createAnalysisRecord(input: AnalysisInput): number {
 
 export function updateAnalysisResult(id: number, markdown: string, meta: Partial<LLMResponse>): void {
   const db = getDb();
-  // Extraer título de la primera línea markdown
-  const titleMatch = markdown.match(/^#\s+(.+)/m);
-  const title = titleMatch ? titleMatch[1].slice(0, 200) : 'Análisis sin título';
+  const title = extractTitle(markdown);
 
   db.prepare(
     'UPDATE analyses SET result_markdown = ?, title = ?, llm_provider = ?, llm_model = ?, tokens_used = ?, duration_ms = ? WHERE id = ?'
