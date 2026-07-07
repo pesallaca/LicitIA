@@ -53,6 +53,9 @@ export function extractTitle(markdown: string): string {
   // 1. Preferir el "Objeto" del pliego: "Objeto del contrato:", "Objeto:", etc.
   const objeto = markdown.match(/objeto\b[^:\n]{0,40}?:\s*\**\s*([^\n*][^\n.]{5,120})/i);
   if (objeto) return objeto[1].replace(/\*/g, '').trim().slice(0, 120);
+  // 1b. Variante en prosa: "El objeto del contrato es el servicio de..."
+  const prosa = markdown.match(/objeto del contrato es\s+(?:el|la|los|las)?\s*([^\n.]{5,120})/i);
+  if (prosa) return prosa[1].replace(/\*/g, '').trim().slice(0, 120);
   // 2. Si no, el primer encabezado del informe
   const heading = markdown.match(/^#{1,3}\s*(?:\d+\.\s*)?(.+)/m);
   if (heading) return heading[1].replace(/[*#]/g, '').trim().slice(0, 120);

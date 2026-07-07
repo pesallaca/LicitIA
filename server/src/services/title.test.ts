@@ -7,6 +7,11 @@ describe('extractTitle (título del historial)', () => {
     expect(extractTitle(md)).toBe('Mantenimiento de jardines de Alcobendas');
   });
 
+  it('reconoce el objeto en prosa ("El objeto del contrato es...")', () => {
+    const md = '## 1. FICHA EJECUTIVA DEL CONTRATO\nEl objeto del contrato es el servicio de mantenimiento integral de parques de Alcobendas. El presupuesto...';
+    expect(extractTitle(md)).toBe('servicio de mantenimiento integral de parques de Alcobendas');
+  });
+
   it('cae al primer encabezado (con o sin numeración) si no hay objeto', () => {
     expect(extractTitle('## 2. Análisis económico\ntexto')).toBe('Análisis económico');
     expect(extractTitle('# Informe estratégico\ntexto')).toBe('Informe estratégico');
